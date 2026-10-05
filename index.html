@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ژورنال ترید</title>
+<meta name="description" content="ژورنال شخصی ترید فارکس">
+<meta name="theme-color" content="#2F4B8A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --sunk:#F5F7F9; --ink:#1B2430; --muted:#5E6B7A; --line:#D5DBE2;
+  --win:#0F8B6C; --win-soft:#DDF1EA; --loss:#C2413B; --loss-soft:#F7E1DF; --warn:#9A6414; --warn-soft:#F6EAD3;
+  --accent:#2F4B8A; --accent-ink:#FFFFFF;
+  --font:"Vazirmatn", Tahoma, "Segoe UI", Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151A21; --surface:#1D242D; --sunk:#181E26; --ink:#E6EAF0; --muted:#97A3B1; --line:#2E3844;
+    --win:#3DBE95; --win-soft:#17362D; --loss:#E4665F; --loss-soft:#3A2020; --warn:#E0A845; --warn-soft:#3A2E17;
+    --accent:#7C9BE0; --accent-ink:#10151C; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151A21; --surface:#1D242D; --sunk:#181E26; --ink:#E6EAF0; --muted:#97A3B1; --line:#2E3844;
+  --win:#3DBE95; --win-soft:#17362D; --loss:#E4665F; --loss-soft:#3A2020; --warn:#E0A845; --warn-soft:#3A2E17;
+  --accent:#7C9BE0; --accent-ink:#10151C; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.7}
+button,input,select,textarea{font:inherit;color:inherit}
+img{max-width:100%}
+.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.num{font-variant-numeric:tabular-nums}
+.win{color:var(--win)} .loss{color:var(--loss)} .be{color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{max-width:1120px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:19px;margin-left:auto;display:flex;align-items:center;gap:10px}
+.brand svg{flex:none}
+nav{display:flex;gap:4px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:3px}
+nav button{border:0;background:none;padding:6px 14px;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:500}
+nav button[aria-current="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 16px;border-radius:9px;cursor:pointer;font-weight:500}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.btn.danger{color:var(--loss)}
+.btn.danger.armed{background:var(--loss);color:#fff;border-color:var(--loss)}
+.btn:disabled{opacity:.55;cursor:default}
+
+main{max-width:1120px;margin:0 auto;padding:20px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.filters select{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.filters .lbl{color:var(--muted);font-size:13px}
+
+/* dashboard */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px 12px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.hero h2{margin:0;font-size:16px;font-weight:700}
+.hero .sub{color:var(--muted);font-size:13px}
+.total{font-size:40px;font-weight:800;line-height:1.1}
+.curve{width:100%;height:auto;display:block;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);margin-top:10px}
+.stat{padding:12px 4px 6px;border-left:1px solid var(--line)}
+.stat:last-child{border-left:0}
+.stat b{display:block;font-size:20px;font-weight:700}
+.stat b.ltr{display:block;direction:ltr;text-align:right}
+.cmp em.ltr{display:block;direction:ltr;text-align:right}
+.stat span{color:var(--muted);font-size:12.5px}
+@media (max-width:760px){.stats{grid-template-columns:repeat(3,1fr)} .stat:nth-child(3){border-left:0} .stat:nth-child(n+4){border-top:1px solid var(--line)}}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.panel h3{margin:0 0 4px;font-size:15px}
+.panel p.hint{margin:0 0 10px;color:var(--muted);font-size:13px}
+.panel.discipline{border-color:var(--warn);}
+table.brk{width:100%;border-collapse:collapse;font-size:14px}
+table.brk td:first-child{white-space:normal;width:40%}
+table.brk th{white-space:nowrap;font-weight:500;color:var(--muted);font-size:12.5px;text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}
+table.brk td{padding:8px 4px;white-space:nowrap;border-bottom:1px solid var(--line)}
+table.brk tr:last-child td{border-bottom:0}
+.rbar{height:8px;border-radius:4px;background:var(--line);position:relative;min-width:60px}
+.rbar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cmp div{border-radius:10px;padding:12px 14px}
+.cmp .ok{background:var(--win-soft)} .cmp .bad{background:var(--loss-soft)}
+.cmp strong{display:block;font-size:13px;font-weight:500}
+.cmp em{font-style:normal;font-size:24px;font-weight:800;display:block}
+.cmp small{color:var(--muted)}
+
+/* list */
+.trades{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.trow{display:grid;grid-template-columns:120px 150px 1fr 110px 80px 64px;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-inline:0;border-top:0;width:100%;text-align:right}
+.trow:last-child{border-bottom:0}
+.trow:hover{background:var(--sunk)}
+.trow .date{color:var(--muted);font-size:13px}
+.sym{font-weight:700}
+.dir{font-size:12px;font-weight:700;padding:1px 7px;border-radius:5px;margin-inline-start:8px}
+.dir.buy{background:var(--win-soft);color:var(--win)} .dir.sell{background:var(--loss-soft);color:var(--loss)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:0 8px;color:var(--muted);white-space:nowrap}
+.flag{font-size:12px;color:var(--warn);background:var(--warn-soft);border-radius:5px;padding:1px 7px;white-space:nowrap}
+.thumb{width:64px;height:42px;border-radius:6px;object-fit:cover;background:var(--sunk);border:1px solid var(--line)}
+.rval{font-weight:700;font-size:16px}
+@media (max-width:760px){
+  .trow{grid-template-columns:1fr auto;grid-template-areas:"a r" "b b" "c c";row-gap:4px}
+  .trow .date{grid-area:c} .trow .symc{grid-area:a} .trow .chips{grid-area:b} .trow .sess,.trow .thumbc{display:none} .trow .rc{grid-area:r}
+}
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty .btn{margin-top:12px}
+
+/* overlay / form */
+.overlay{position:fixed;inset:0;background:rgba(15,20,28,.55);z-index:20;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 24px) 12px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.sheet{background:var(--bg);border-radius:14px;width:100%;max-width:880px;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.sheet-head h2{margin:0;font-size:17px}
+.x{border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 8px}
+form{padding:6px 20px 20px}
+.fs{border-bottom:1px solid var(--line);padding:16px 0}
+.fs:last-of-type{border-bottom:0}
+.lg{font-weight:700;font-size:14.5px;margin:0 0 12px}
+.fg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px}
+.fg>*{min-width:0}
+.fg .w2{grid-column:span 2} .fg .w4{grid-column:1/-1}
+@media (max-width:680px){.fg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+label.f input,label.f select,label.f textarea{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15px;min-width:0}
+label.f textarea{resize:vertical;min-height:70px}
+input[dir="ltr"]{text-align:left}
+.seg{display:flex;width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg label{flex:1;text-align:center;cursor:pointer;padding:8px 4px;display:flex!important;align-items:center;justify-content:center;font-size:14px;color:var(--ink)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-ink);font-weight:700}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+.seg.dir label:has(input[value="buy"]:checked){background:var(--win);color:#fff}
+.seg.dir label:has(input[value="sell"]:checked){background:var(--loss);color:#fff}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick label{border:1px solid var(--line);border-radius:20px;padding:4px 12px;cursor:pointer;background:var(--surface);font-size:14px;color:var(--ink)}
+.pick input{position:absolute;opacity:0;pointer-events:none}
+.pick label:has(input:checked){border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.pick label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+.rules{display:flex;flex-direction:column;gap:6px}
+.rules label{display:flex;gap:10px;align-items:center;cursor:pointer;color:var(--ink)}
+.rules input{width:18px;height:18px;accent-color:var(--win)}
+.calc{grid-column:1/-1;display:flex;gap:18px;flex-wrap:wrap;background:var(--sunk);border:1px dashed var(--line);border-radius:8px;padding:8px 12px;font-size:13.5px;color:var(--muted)}
+.calc b{color:var(--ink)}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:600px){.shots{grid-template-columns:1fr}}
+.drop{border:2px dashed var(--line);border-radius:10px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px;background:var(--surface);position:relative;cursor:pointer;color:var(--muted);font-size:13.5px}
+.drop.over,.drop:focus-visible{border-color:var(--accent)}
+.drop img{max-height:220px;border-radius:6px}
+.drop .rm{position:absolute;top:6px;left:6px;border:0;border-radius:6px;background:rgba(0,0,0,.6);color:#fff;padding:2px 9px;cursor:pointer;font-size:13px}
+.drop strong{color:var(--ink);font-weight:500}
+.actions{display:flex;justify-content:flex-start;gap:10px;padding-top:16px}
+
+/* detail */
+.detail{padding:18px 20px 20px}
+.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 16px;margin-bottom:14px}
+@media (max-width:600px){.dgrid{grid-template-columns:1fr 1fr}}
+.dgrid div span{display:block;color:var(--muted);font-size:12.5px}
+.dgrid div b{font-weight:500}
+.dshots{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+@media (max-width:600px){.dshots{grid-template-columns:1fr}}
+.dshots figure{margin:0}
+.dshots img{width:100%;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+.dshots figcaption{font-size:12.5px;color:var(--muted)}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px;white-space:pre-wrap}
+.note span{display:block;font-size:12.5px;color:var(--muted)}
+.ruleList{list-style:none;padding:0;margin:6px 0 0;font-size:14px}
+.ruleList li::before{content:"✓ ";color:var(--win);font-weight:700}
+.ruleList li.no::before{content:"✗ ";color:var(--loss)}
+.zoom{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.zoom img{max-height:100%;max-width:100%}
+
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:9px;z-index:40;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+footer{max-width:1120px;margin:0 auto;padding:6px 20px 30px;color:var(--muted);font-size:12.5px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+footer button{border:0;background:none;color:var(--accent);cursor:pointer;padding:0;font-size:12.5px;text-decoration:underline}
+@media (max-width:600px){
+  .bar{padding:10px 14px;gap:10px}
+  .brand{order:1} #newBtn{order:2} nav{order:3;width:100%} nav button{flex:1}
+  main{padding:14px}
+  .filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}
+  .filters .lbl{grid-row:1} .filters select{grid-row:2;min-width:0}
+  .hero{padding:16px 14px 8px} .total{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="3" y="9" width="4" height="10" rx="1" fill="var(--loss)"/><line x1="5" y1="5" x2="5" y2="22" stroke="var(--loss)" stroke-width="1.5"/><rect x="11" y="6" width="4" height="12" rx="1" fill="var(--win)"/><line x1="13" y1="3" x2="13" y2="21" stroke="var(--win)" stroke-width="1.5"/><rect x="19" y="4" width="4" height="9" rx="1" fill="var(--win)"/><line x1="21" y1="2" x2="21" y2="16" stroke="var(--win)" stroke-width="1.5"/></svg>
+      ژورنال ترید
+    </div>
+    <nav aria-label="بخش‌ها">
+      <button data-view="dash" aria-current="true">داشبورد</button>
+      <button data-view="list" aria-current="false">ترید‌ها</button>
+    </nav>
+    <button class="btn primary" id="newBtn">+ ثبت ترید</button>
+  </div>
+</header>
+
+<main>
+  <div class="filters">
+    <span class="lbl">بازه</span>
+    <select id="fPeriod">
+      <option value="all">همه</option>
+      <option value="7">۷ روز اخیر</option>
+      <option value="30">۳۰ روز اخیر</option>
+      <option value="90">۹۰ روز اخیر</option>
+    </select>
+    <span class="lbl">نماد</span>
+    <select id="fSymbol"><option value="">همه</option></select>
+    <span class="lbl">ستاپ</span>
+    <select id="fSetup"><option value="">همه</option></select>
+  </div>
+  <section id="view"><div class="empty">در حال بارگذاری…</div></section>
+</main>
+
+<footer>
+  <span id="storeMode"></span>
+  <button id="exportBtn" hidden>خروجی CSV</button>
+  <button id="backupBtn">دانلود پشتیبان</button>
+  <button id="restoreBtn">بازگردانی پشتیبان</button>
+  <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+</footer>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- constants ---------- */
+const SETUPS = [];
+const SYMBOLS = ['EURUSD','GBPUSD','XAUUSD','USDJPY','GBPJPY','NAS100','US30'];
+const SESSIONS = {asia:'آسیا', london:'لندن کیل‌زون', ny:'نیویورک', off:'خارج از سشن'};
+const HTFS = ['D1','H4','H1','M15'];
+const LTFS = ['M1','M3','M5','M15'];
+const BIAS = {bull:'صعودی', bear:'نزولی', range:'رنج'};
+const EMOTIONS = {calm:'آرام', confident:'مطمئن', rushed:'عجله', fear:'ترس', greed:'طمع', revenge:'انتقام', fomo:'ترس از جا ماندن'};
+const RULES = [
+  {k:'inSession', t:'داخل ساعت معاملاتی‌ام بودم'},
+  {k:'plan',      t:'ستاپ دقیقاً طبق پلن بود'},
+  {k:'risk',      t:'ریسک طبق قانونم بود'},
+  {k:'noRevenge', t:'بعد از ضرر حجم را بالا نبردم'},
+  {k:'slKept',    t:'استاپ را به ضرر جابه‌جا نکردم'},
+];
+const RESULT = {win:'سود', loss:'ضرر', be:'سربه‌سر'};
+
+/* ---------- state ---------- */
+let trades = [];
+let view = 'dash';
+let store = null;      // {mode, save, remove}
+let assets = null, downloads = null;
+const filters = {period:'all', symbol:'', setup:''};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtR = r => (r > 0 ? '+' : '') + (Math.round(r*100)/100).toFixed(2) + 'R';
+const cls = r => r > 0.05 ? 'win' : r < -0.05 ? 'loss' : 'be';
+const pct = x => isFinite(x) ? Math.round(x*100) + '%' : '—';
+const num = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
+const fmtDate = s => s ? s.replace('T',' ').slice(0,16) : '—';
+const imgSrc = v => !v ? '' : v.startsWith('data:') ? v : (typeof imgCache!=='undefined' && imgCache.get(v)) || '';
+const rulesOk = t => RULES.every(r => t.rules && t.rules[r.k]);
+function nowLocal(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+let toastT;
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2600); }
+
+/* ---------- storage ---------- */
+/* IndexedDB: trades + screenshots stay on this device */
+const imgCache = new Map();   // id -> objectURL
+let idb = null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open('trade-journal', 1);
+    r.onupgradeneeded = () => { const d=r.result; d.createObjectStore('trades',{keyPath:'id'}); d.createObjectStore('images'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function run(storeName, mode, fn){
+  return new Promise((res,rej)=>{
+    const t = idb.transaction(storeName, mode); const out = fn(t.objectStore(storeName));
+    t.oncomplete = () => res(out && 'result' in out ? out.result : undefined);
+    t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('abort'));
+  });
+}
+async function loadAll(){
+  trades = await run('trades','readonly', s => s.getAll());
+  const pairs = await new Promise((res,rej)=>{
+    const t = idb.transaction('images','readonly'), s = t.objectStore('images');
+    const k = s.getAllKeys(), v = s.getAll();
+    t.oncomplete = () => res(k.result.map((key,i)=>[key, v.result[i]])); t.onerror = () => rej(t.error);
+  });
+  imgCache.forEach(u=>URL.revokeObjectURL(u)); imgCache.clear();
+  pairs.forEach(([k,b]) => imgCache.set(k, URL.createObjectURL(b)));
+  render();
+}
+function idbStore(){
+  return {
+    mode:'idb',
+    async save(t){ await run('trades','readwrite', s => s.put(JSON.parse(JSON.stringify(t)))); const i=trades.findIndex(x=>x.id===t.id); if(i>=0) trades[i]=t; else trades.push(t); render(); },
+    async remove(id){ await run('trades','readwrite', s => s.delete(id)); trades = trades.filter(x=>x.id!==id); render(); }
+  };
+}
+const idbAssets = {
+  async upload(blob){ const id = 'img_' + uid(); await run('images','readwrite', s => s.put(blob, id)); imgCache.set(id, URL.createObjectURL(blob)); return {id}; },
+  async delete(id){ await run('images','readwrite', s => s.delete(id)); const u=imgCache.get(id); if(u) URL.revokeObjectURL(u); imgCache.delete(id); }
+};
+
+async function init(){
+  try{
+    idb = await openDB();
+    store = idbStore(); assets = idbAssets;
+    if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+    $('#storeMode').textContent = 'داده‌ها فقط روی همین دستگاه و مرورگر ذخیره می‌شوند؛ هر چند وقت یک‌بار پشتیبان بگیر.';
+    $('#exportBtn').hidden = false;
+    await loadAll();
+  }catch(e){
+    $('#view').innerHTML = '<div class="empty trades"><p>مرورگر اجازه‌ی ذخیره‌سازی نمی‌دهد (مثلاً حالت ناشناس). برنامه را در حالت عادی مرورگر باز کن.</p></div>';
+  }
+}
+
+/* backup */
+function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 5000); }
+const blobToDataURL = b => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(b); });
+async function exportBackup(){
+  try{
+    const images = {};
+    const ids = trades.flatMap(t=>[t.imgBefore,t.imgAfter]).filter(Boolean);
+    for(const id of ids){ const b = await run('images','readonly', s=>s.get(id)); if(b) images[id] = await blobToDataURL(b); }
+    const data = JSON.stringify({app:'trade-journal', version:1, exportedAt:new Date().toISOString(), trades, images});
+    download('trade-journal-backup-' + new Date().toISOString().slice(0,10) + '.json', new Blob([data], {type:'application/json'}));
+    toast('فایل پشتیبان دانلود شد.');
+  }catch(e){ toast('ساختن پشتیبان انجام نشد.'); }
+}
+async function importBackup(file){
+  try{
+    const data = JSON.parse(await file.text());
+    if(data.app!=='trade-journal' || !Array.isArray(data.trades)) throw new Error('bad');
+    for(const [id, url] of Object.entries(data.images||{})){ const b = await (await fetch(url)).blob(); await run('images','readwrite', s=>s.put(b, id)); }
+    await run('trades','readwrite', s => { let last; data.trades.forEach(t => { last = s.put(t); }); return last; });
+    await loadAll();
+    toast(data.trades.length + ' ترید وارد شد.');
+  }catch(e){ toast('این فایل پشتیبان معتبر نیست.'); }
+}
+
+/* ---------- filtering & stats ---------- */
+function filtered(){
+  let list = [...trades];
+  if(filters.period !== 'all'){
+    const cut = Date.now() - (+filters.period)*864e5;
+    list = list.filter(t => new Date(t.openedAt).getTime() >= cut);
+  }
+  if(filters.symbol) list = list.filter(t => t.symbol === filters.symbol);
+  if(filters.setup) list = list.filter(t => (t.setups||[]).includes(filters.setup));
+  return list.sort((a,b) => (a.openedAt||'').localeCompare(b.openedAt||''));
+}
+function summarize(list){
+  const rs = list.map(t => +t.r || 0);
+  const n = list.length, wins = list.filter(t=>t.result==='win').length, losses = list.filter(t=>t.result==='loss').length;
+  const sum = rs.reduce((a,b)=>a+b,0);
+  const gp = rs.filter(r=>r>0).reduce((a,b)=>a+b,0), gl = -rs.filter(r=>r<0).reduce((a,b)=>a+b,0);
+  let peak=0, cum=0, dd=0; rs.forEach(r=>{ cum+=r; peak=Math.max(peak,cum); dd=Math.max(dd,peak-cum); });
+  return {n, wins, losses, wr: (wins+losses)? wins/(wins+losses) : NaN, sum, avg: n? sum/n : 0, pf: gl? gp/gl : (gp? Infinity : NaN), dd, rules: n? list.filter(rulesOk).length/n : NaN};
+}
+function group(list, keyFn, labelFn=k=>k){
+  const m = new Map();
+  list.forEach(t => { [].concat(keyFn(t)).filter(Boolean).forEach(k => { if(!m.has(k)) m.set(k,[]); m.get(k).push(t); }); });
+  return [...m].map(([k,ts]) => ({label:labelFn(k), ...summarize(ts)})).sort((a,b)=>b.sum-a.sum);
+}
+
+/* ---------- render ---------- */
+function refreshFilterOptions(){
+  const syms = [...new Set(trades.map(t=>t.symbol).filter(Boolean))].sort();
+  const sets = [...new Set(trades.flatMap(t=>t.setups||[]))].sort();
+  const fill = (sel, vals, cur) => { sel.innerHTML = '<option value="">همه</option>' + vals.map(v=>`<option ${v===cur?'selected':''}>${esc(v)}</option>`).join(''); };
+  fill($('#fSymbol'), syms, filters.symbol); fill($('#fSetup'), sets, filters.setup);
+}
+function render(){
+  if(!store) return;
+  refreshFilterOptions();
+  document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-current', b.dataset.view===view));
+  const list = filtered();
+  const el = $('#view');
+  if(!trades.length){
+    el.innerHTML = `<div class="empty trades"><p>هنوز تریدی ثبت نشده. اولین ترید را با ستاپ، عکس و حس لحظه‌ی ورود ثبت کن.</p><button class="btn primary" onclick="openForm()">+ ثبت اولین ترید</button></div>`;
+    return;
+  }
+  el.innerHTML = view==='dash' ? dashHTML(list) : listHTML(list);
+}
+
+function curveSVG(list){
+  const W=Math.max(300, Math.round(($('#view').clientWidth||800) - 46)), H=W<600?200:240, P=28;
+  const pts=[0]; list.forEach(t=>pts.push(pts[pts.length-1]+(+t.r||0)));
+  const mn=Math.min(0,...pts), mx=Math.max(0,...pts), span=(mx-mn)||1;
+  const x=i=>P+(W-2*P)*(pts.length>1? i/(pts.length-1):0.5);
+  const y=v=>H-P-(H-2*P)*((v-mn)/span);
+  // RTL reading: time flows right-to-left visually would confuse chart readers; keep left→right like trading charts
+  const d=pts.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const area = d + ` L${x(pts.length-1).toFixed(1)} ${y(0).toFixed(1)} L${x(0).toFixed(1)} ${y(0).toFixed(1)} Z`;
+  const dots = list.map((t,i)=>{ const r=+t.r||0; const c=r>0.05?'var(--win)':r<-0.05?'var(--loss)':'var(--muted)';
+    return `<circle cx="${x(i+1).toFixed(1)}" cy="${y(pts[i+1]).toFixed(1)}" r="${list.length>60?2.5:4}" fill="${c}" ${rulesOk(t)?'':'stroke="var(--warn)" stroke-width="2.5"'}><title>${esc(t.symbol)} ${fmtDate(t.openedAt)} — ${fmtR(r)}</title></circle>`; }).join('');
+  const last=pts[pts.length-1], lc=last>=0?'var(--win)':'var(--loss)';
+  return `<svg class="curve" viewBox="0 0 ${W} ${H}" role="img" aria-label="منحنی بازدهی تجمعی بر حسب R" style="direction:ltr">
+    <line x1="${P}" x2="${W-P}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)" stroke-dasharray="4 4"/>
+    <text x="${W-P+4}" y="${y(0)+4}" font-size="11" fill="var(--muted)" font-family="var(--font)">0R</text>
+    <text x="${W-P+4}" y="${y(mx)+4}" font-size="11" fill="var(--muted)" font-family="var(--font)">${mx.toFixed(1)}</text>
+    ${mn<0?`<text x="${W-P+4}" y="${y(mn)+4}" font-size="11" fill="var(--muted)" font-family="var(--font)">${mn.toFixed(1)}</text>`:''}
+    <path d="${area}" fill="${lc}" opacity=".08"/>
+    <path d="${d}" fill="none" stroke="${lc}" stroke-width="2.2" stroke-linejoin="round"/>
+    ${dots}
+  </svg>`;
+}
+function brkTable(rows){
+  if(!rows.length) return '<p class="hint">داده‌ای نیست.</p>';
+  const m = Math.max(...rows.map(r=>Math.abs(r.sum)),0.01);
+  return `<table class="brk"><thead><tr><th></th><th>تعداد</th><th>وین‌ریت</th><th>میانگین</th><th>مجموع</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td>${esc(r.label)}</td><td class="num">${r.n}</td><td class="num">${pct(r.wr)}</td><td class="num ${cls(r.avg)}"><span class="ltr">${fmtR(r.avg)}</span></td><td class="num ${cls(r.sum)}"><b class="ltr">${fmtR(r.sum)}</b></td></tr>`).join('')
+  }</tbody></table>`;
+}
+function dashHTML(list){
+  if(!list.length) return `<div class="empty trades"><p>در این بازه و فیلتر تریدی نیست.</p></div>`;
+  const s = summarize(list);
+  const ok = summarize(list.filter(rulesOk)), bad = summarize(list.filter(t=>!rulesOk(t)));
+  return `
+  <section class="hero">
+    <div class="hero-top">
+      <div><h2>منحنی بازدهی</h2><div class="sub">${s.n} ترید · نقطه‌های حاشیه‌دار = قانون شکسته شده</div></div>
+      <div class="total num ltr ${cls(s.sum)}">${fmtR(s.sum)}</div>
+    </div>
+    ${curveSVG(list)}
+    <div class="stats">
+      <div class="stat"><b class="num">${pct(s.wr)}</b><span>وین‌ریت (${s.wins}/${s.wins+s.losses})</span></div>
+      <div class="stat"><b class="num ltr ${cls(s.avg)}">${fmtR(s.avg)}</b><span>میانگین هر ترید</span></div>
+      <div class="stat"><b class="num">${isFinite(s.pf)? s.pf.toFixed(2) : s.pf===Infinity?'∞':'—'}</b><span>پرافیت فاکتور</span></div>
+      <div class="stat"><b class="num ltr loss">${s.dd? '-'+s.dd.toFixed(2)+'R':'0R'}</b><span>بیشترین افت</span></div>
+      <div class="stat"><b class="num">${pct(s.rules)}</b><span>رعایت کامل قوانین</span></div>
+      <div class="stat"><b class="num">${s.n}</b><span>تعداد ترید</span></div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <section class="panel discipline">
+      <h3>طبق قانون در برابر خلاف قانون</h3>
+      <p class="hint">ترید‌هایی که همه‌ی تیک‌های انضباط را خورده‌اند، در برابر بقیه.</p>
+      <div class="cmp">
+        <div class="ok"><strong>طبق قانون · ${ok.n} ترید</strong><em class="num ltr">${ok.n?fmtR(ok.avg):'—'}</em><small>میانگین هر ترید، وین‌ریت <span class="ltr">${pct(ok.wr)}</span></small></div>
+        <div class="bad"><strong>خلاف قانون · ${bad.n} ترید</strong><em class="num ltr">${bad.n?fmtR(bad.avg):'—'}</em><small>میانگین هر ترید، وین‌ریت <span class="ltr">${pct(bad.wr)}</span></small></div>
+      </div>
+      <p class="hint" style="margin-top:12px">قانون‌هایی که بیشتر شکسته شده‌اند:</p>
+      ${brokenRules(list)}
+    </section>
+    <section class="panel"><h3>بر اساس ستاپ</h3><p class="hint">ترید با چند ستاپ در هر کدام حساب می‌شود.</p>${brkTable(group(list,t=>t.setups||[]))}</section>
+    <section class="panel"><h3>بر اساس سشن</h3>${brkTable(group(list,t=>t.session,k=>SESSIONS[k]||k))}</section>
+    <section class="panel"><h3>بر اساس نماد</h3>${brkTable(group(list,t=>t.symbol))}</section>
+    <section class="panel"><h3>بر اساس حس هنگام ورود</h3>${brkTable(group(list,t=>t.emotion,k=>EMOTIONS[k]||k))}</section>
+    <section class="panel"><h3>هم‌جهت با بایاس تایم بالا</h3>${brkTable(group(list,t=>t.withBias==null?null:(t.withBias?'yes':'no'),k=>k==='yes'?'هم‌جهت':'خلاف جهت'))}</section>
+  </div>`;
+}
+function brokenRules(list){
+  const rows = RULES.map(r=>({t:r.t, n:list.filter(x=>!(x.rules&&x.rules[r.k])).length})).filter(r=>r.n).sort((a,b)=>b.n-a.n);
+  if(!rows.length) return '<p class="hint" style="color:var(--win)">هیچ قانونی شکسته نشده.</p>';
+  return `<table class="brk"><tbody>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td class="num" style="width:70px">${r.n} بار</td></tr>`).join('')}</tbody></table>`;
+}
+function listHTML(list){
+  if(!list.length) return `<div class="empty trades"><p>در این بازه و فیلتر تریدی نیست.</p></div>`;
+  return `<div class="trades">${[...list].reverse().map(t=>`
+    <button class="trow" onclick="openDetail('${t.id}')">
+      <span class="date num ltr">${fmtDate(t.openedAt)}</span>
+      <span class="symc"><span class="sym">${esc(t.symbol)}</span><span class="dir ${t.direction}">${t.direction==='buy'?'Buy':'Sell'}</span></span>
+      <span class="chips">${(t.setups||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${rulesOk(t)?'':'<span class="flag">قانون شکسته</span>'}</span>
+      <span class="sess" style="color:var(--muted);font-size:13px">${esc(SESSIONS[t.session]||'')}</span>
+      <span class="rc rval num ltr ${cls(+t.r||0)}">${fmtR(+t.r||0)}</span>
+      <span class="thumbc">${t.imgBefore||t.imgAfter?`<img class="thumb" alt="" loading="lazy" src="${esc(imgSrc(t.imgBefore||t.imgAfter))}">`:''}</span>
+    </button>`).join('')}</div>`;
+}
+
+/* ---------- detail ---------- */
+function openDetail(id){
+  const t = trades.find(x=>x.id===id); if(!t) return;
+  const rr = t.plannedRR ? '1:' + (+t.plannedRR).toFixed(2) : '—';
+  const cell = (k,v)=>`<div><span>${k}</span><b>${v}</b></div>`;
+  modal(`
+    <div class="sheet-head"><h2><span class="sym">${esc(t.symbol)}</span> <span class="dir ${t.direction}">${t.direction==='buy'?'Buy':'Sell'}</span> <span class="num ltr ${cls(+t.r||0)}" style="margin-right:8px">${fmtR(+t.r||0)}</span></h2><button class="x" onclick="closeModal()" aria-label="بستن">×</button></div>
+    <div class="detail">
+      <div class="dgrid">
+        ${cell('ورود', `<span class="num ltr">${fmtDate(t.openedAt)}</span>`)}
+        ${cell('خروج', `<span class="num ltr">${fmtDate(t.closedAt)}</span>`)}
+        ${cell('سشن', esc(SESSIONS[t.session]||'—'))}
+        ${cell('تایم‌فریم', `<span class="ltr">${esc(t.htf||'—')} → ${esc(t.ltf||'—')}</span>`)}
+        ${cell('بایاس', esc(BIAS[t.bias]||'—') + (t.withBias==null?'':t.withBias?' · هم‌جهت':' · خلاف جهت'))}
+        ${cell('نتیجه', `<span class="${cls(+t.r||0)}">${RESULT[t.result]||'—'}</span>`)}
+        ${cell('سود/ضرر', t.pnl!=null&&t.pnl!==''?`<span class="num ltr ${cls(+t.pnl)}">${(+t.pnl>0?'+':'')+t.pnl}$</span>`:'—')}
+        ${cell('R:R برنامه', `<span class="num ltr">${rr}</span>`)}
+        ${cell('ورود / استاپ / تارگت', `<span class="num ltr">${[t.entry,t.sl,t.tp].map(v=>v??'—').join(' / ')}</span>`)}
+        ${cell('قیمت خروج', `<span class="num ltr">${t.exit??'—'}</span>`)}
+        ${cell('حجم / ریسک', `<span class="num ltr">${t.lots??'—'} lot · ${t.riskPct!=null&&t.riskPct!==''?t.riskPct+'%':'—'}</span>`)}
+        ${cell('حس / کیفیت اجرا', `${esc(EMOTIONS[t.emotion]||'—')} · ${t.exec?t.exec+'/5':'—'}`)}
+      </div>
+      <div class="chips">${(t.setups||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div>
+      <ul class="ruleList">${RULES.map(r=>`<li class="${t.rules&&t.rules[r.k]?'':'no'}">${esc(r.t)}</li>`).join('')}</ul>
+      ${t.imgBefore||t.imgAfter?`<div class="dshots">
+        ${t.imgBefore?`<figure><img src="${esc(imgSrc(t.imgBefore))}" alt="چارت قبل از ورود" onclick="zoom(this.src)"><figcaption>قبل از ورود</figcaption></figure>`:''}
+        ${t.imgAfter?`<figure><img src="${esc(imgSrc(t.imgAfter))}" alt="چارت بعد از بستن" onclick="zoom(this.src)"><figcaption>بعد از بستن</figcaption></figure>`:''}
+      </div>`:''}
+      ${t.reason?`<div class="note"><span>چرا وارد شدم</span>${esc(t.reason)}</div>`:''}
+      ${t.lesson?`<div class="note"><span>درسی که گرفتم</span>${esc(t.lesson)}</div>`:''}
+      <div class="actions">
+        <button class="btn primary" onclick="openForm('${t.id}')">ویرایش</button>
+        <button class="btn danger" id="delBtn">حذف</button>
+      </div>
+    </div>`);
+  const del = $('#delBtn');
+  del.onclick = async () => {
+    if(!del.classList.contains('armed')){ del.classList.add('armed'); del.textContent='برای حذف دوباره بزن'; setTimeout(()=>{ if(del.isConnected){ del.classList.remove('armed'); del.textContent='حذف'; } }, 3500); return; }
+    del.disabled = true;
+    try{ await store.remove(t.id); if(assets){ for(const a of [t.imgBefore,t.imgAfter]) if(a && !a.startsWith('data:')) assets.delete(a).catch(()=>{}); } closeModal(); toast('ترید حذف شد.'); }
+    catch(e){ del.disabled=false; toast('حذف انجام نشد؛ دوباره امتحان کن.'); }
+  };
+}
+function zoom(src){ const z=document.createElement('div'); z.className='zoom'; z.innerHTML=`<img src="${esc(src)}" alt="">`; z.onclick=()=>z.remove(); document.body.appendChild(z); }
+
+/* ---------- modal ---------- */
+function modal(inner){
+  $('#modalRoot').innerHTML = `<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+  $('#ov').addEventListener('mousedown', e => { if(e.target.id==='ov') closeModal(); });
+  document.body.style.overflow='hidden';
+}
+function closeModal(){ $('#modalRoot').innerHTML=''; document.body.style.overflow=''; pendingImgs={before:null,after:null}; }
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ if(document.querySelector('.zoom')) document.querySelector('.zoom').remove(); else if($('#ov')) closeModal(); } });
+
+/* ---------- form ---------- */
+let pendingImgs = {before:null, after:null};   // {blob, url} | 'remove' | null
+let editing = null;
+function opts(obj, cur, blank){ return (blank?`<option value="">${blank}</option>`:'') + Object.entries(obj).map(([k,v])=>`<option value="${k}" ${k===cur?'selected':''}>${esc(v)}</option>`).join(''); }
+function arrOpts(arr, cur){ return arr.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join(''); }
+
+function openForm(id){
+  editing = id ? trades.find(x=>x.id===id) : null;
+  const t = editing || {openedAt: nowLocal(), direction:'buy', session:'london', htf:'H1', ltf:'M1', setups:[], rules:{}, exec:3, emotion:'calm', symbol: lastSymbol()};
+  pendingImgs = {before:null, after:null};
+  const allSyms = [...new Set([...SYMBOLS, ...trades.map(x=>x.symbol).filter(Boolean)])];
+  modal(`
+  <div class="sheet-head"><h2>${editing?'ویرایش ترید':'ثبت ترید'}</h2><button class="x" onclick="closeModal()" aria-label="بستن">×</button></div>
+  <form id="tf" novalidate>
+    <section class="fs"><h3 class="lg">مشخصات</h3><div class="fg">
+      <label class="f">نماد<input name="symbol" list="symList" dir="ltr" required value="${esc(t.symbol||'')}" autocomplete="off"><datalist id="symList">${allSyms.map(s=>`<option value="${s}">`).join('')}</datalist></label>
+      <div class="f"><label class="f">جهت</label><div class="seg dir"><label><input type="radio" name="direction" value="buy" ${t.direction==='buy'?'checked':''}>Buy</label><label><input type="radio" name="direction" value="sell" ${t.direction==='sell'?'checked':''}>Sell</label></div></div>
+      <label class="f">زمان ورود<input type="datetime-local" name="openedAt" dir="ltr" value="${esc(t.openedAt||'')}"></label>
+      <label class="f">زمان خروج<input type="datetime-local" name="closedAt" dir="ltr" value="${esc(t.closedAt||'')}"></label>
+      <label class="f">سشن<select name="session">${opts(SESSIONS,t.session)}</select></label>
+      <label class="f">تایم‌فریم تحلیل<select name="htf" dir="ltr">${arrOpts(HTFS,t.htf)}</select></label>
+      <label class="f">تایم‌فریم ورود<select name="ltf" dir="ltr">${arrOpts(LTFS,t.ltf)}</select></label>
+      <label class="f">بایاس تایم بالا<select name="bias">${opts(BIAS,t.bias,'—')}</select></label>
+    </div></section>
+
+    <section class="fs"><h3 class="lg">ستاپ</h3>
+      ${(()=>{ const all=[...new Set([...SETUPS, ...(t.setups||[])])]; return all.length
+        ? `<div class="pick">${all.map(s=>`<label><input type="checkbox" name="setups" value="${esc(s)}" ${(t.setups||[]).includes(s)?'checked':''}>${esc(s)}</label>`).join('')}</div>`
+        : '<p class="hint" style="margin:0;color:var(--muted);font-size:13.5px">هنوز ستاپی تعریف نشده.</p>'; })()}
+    </section>
+
+    <section class="fs"><h3 class="lg">قیمت‌ها و ریسک</h3><div class="fg">
+      <label class="f">قیمت ورود<input name="entry" inputmode="decimal" dir="ltr" value="${t.entry??''}"></label>
+      <label class="f">استاپ لاس<input name="sl" inputmode="decimal" dir="ltr" value="${t.sl??''}"></label>
+      <label class="f">تارگت<input name="tp" inputmode="decimal" dir="ltr" value="${t.tp??''}"></label>
+      <label class="f">قیمت خروج<input name="exit" inputmode="decimal" dir="ltr" value="${t.exit??''}"></label>
+      <label class="f">حجم (لات)<input name="lots" inputmode="decimal" dir="ltr" value="${t.lots??''}"></label>
+      <label class="f">ریسک (٪ حساب)<input name="riskPct" inputmode="decimal" dir="ltr" value="${t.riskPct??''}"></label>
+      <label class="f">سود/ضرر ($)<input name="pnl" inputmode="decimal" dir="ltr" value="${t.pnl??''}"></label>
+      <label class="f">نتیجه به R<input name="r" inputmode="decimal" dir="ltr" value="${t.r??''}" placeholder="خودکار"></label>
+      <div class="calc" id="calc"></div>
+    </div></section>
+
+    <section class="fs"><h3 class="lg">انضباط و ذهن</h3><div class="fg">
+      <div class="w2"><div class="rules">${RULES.map(r=>`<label><input type="checkbox" name="rule_${r.k}" ${t.rules&&t.rules[r.k]?'checked':''}>${r.t}</label>`).join('')}</div></div>
+      <label class="f">حس هنگام ورود<select name="emotion">${opts(EMOTIONS,t.emotion)}</select></label>
+      <div class="f"><label class="f">کیفیت اجرا</label><div class="seg">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="exec" value="${n}" ${+t.exec===n?'checked':''}>${n}</label>`).join('')}</div></div>
+    </div></section>
+
+    <section class="fs"><h3 class="lg">عکس‌ها و یادداشت</h3>
+      <div class="shots">
+        ${dropHTML('before','قبل از ورود', t.imgBefore)}
+        ${dropHTML('after','بعد از بستن', t.imgAfter)}
+      </div>
+      <div class="fg" style="margin-top:14px">
+        <label class="f w2">چرا وارد شدم<textarea name="reason">${esc(t.reason||'')}</textarea></label>
+        <label class="f w2">درسی که گرفتم<textarea name="lesson">${esc(t.lesson||'')}</textarea></label>
+      </div>
+    </section>
+
+    <div class="actions"><button class="btn primary" type="submit" id="saveBtn">${editing?'ذخیره‌ی تغییرات':'ثبت ترید'}</button><button class="btn" type="button" onclick="closeModal()">انصراف</button></div>
+  </form>`);
+
+  const f = $('#tf');
+  let rTouched = !!(editing && editing.rManual);
+  f.r.addEventListener('input', () => { rTouched = f.r.value.trim() !== ''; });
+  const recalc = () => {
+    const e=num(f.entry.value), sl=num(f.sl.value), tp=num(f.tp.value), ex=num(f.exit.value);
+    const dir=f.direction.value; const risk = (e!=null&&sl!=null)? Math.abs(e-sl) : null;
+    const parts=[];
+    if(risk){
+      const pip = /JPY/i.test(f.symbol.value) ? 0.01 : /XAU|NAS|US30|SPX|GER/i.test(f.symbol.value) ? null : 0.0001;
+      if(pip) parts.push(`استاپ: <b class="ltr">${(risk/pip).toFixed(1)} pip</b>`);
+      if(tp!=null) parts.push(`R:R برنامه: <b class="ltr">1:${(Math.abs(tp-e)/risk).toFixed(2)}</b>`);
+      if(ex!=null){ const r = (dir==='buy'? ex-e : e-ex)/risk; parts.push(`R واقعی: <b class="ltr ${cls(r)}">${fmtR(r)}</b>`); if(!rTouched) f.r.value = (Math.round(r*100)/100).toString(); }
+    }
+    $('#calc').innerHTML = parts.length ? parts.join('') : 'با وارد کردن ورود، استاپ و خروج، R و فاصله‌ی استاپ خودکار حساب می‌شود.';
+  };
+  ['entry','sl','tp','exit','symbol'].forEach(n=>f[n].addEventListener('input',recalc));
+  f.querySelectorAll('input[name=direction]').forEach(i=>i.addEventListener('change',recalc));
+  recalc();
+  bindDrops();
+  f.addEventListener('submit', e => { e.preventDefault(); submitForm(f, rTouched); });
+  f.symbol.focus();
+}
+function lastSymbol(){ const s=[...trades].sort((a,b)=>(b.openedAt||'').localeCompare(a.openedAt||''))[0]; return s? s.symbol : 'EURUSD'; }
+
+function dropHTML(slot, title, existing){
+  const src = imgSrc(existing);
+  return `<div class="drop" tabindex="0" data-slot="${slot}" role="button" aria-label="افزودن عکس ${title}">
+    ${src?`<img src="${esc(src)}" alt=""><button type="button" class="rm">حذف</button>`:`<strong>${title}</strong><span>کلیک کن، فایل را بکش اینجا، یا اسکرین‌شات را Ctrl+V کن</span>`}
+    <input type="file" accept="image/*" hidden>
+  </div>`;
+}
+function setDrop(slot, blob){
+  const d = document.querySelector(`.drop[data-slot="${slot}"]`); if(!d) return;
+  const url = URL.createObjectURL(blob);
+  pendingImgs[slot] = {blob, url};
+  d.querySelector('img')?.remove(); d.querySelector('strong')?.remove(); d.querySelector('span')?.remove(); d.querySelector('.rm')?.remove();
+  d.insertAdjacentHTML('afterbegin', `<img src="${url}" alt=""><button type="button" class="rm">حذف</button>`);
+}
+function bindDrops(){
+  document.querySelectorAll('.drop').forEach(d => {
+    const slot=d.dataset.slot, input=d.querySelector('input');
+    d.addEventListener('click', e => {
+      if(e.target.classList.contains('rm')){
+        e.stopPropagation(); pendingImgs[slot]='remove';
+        const title = slot==='before'?'قبل از ورود':'بعد از بستن';
+        d.querySelector('img')?.remove(); e.target.remove();
+        d.insertAdjacentHTML('afterbegin', `<strong>${title}</strong><span>کلیک کن، فایل را بکش اینجا، یا اسکرین‌شات را Ctrl+V کن</span>`);
+        return;
+      }
+      input.click();
+    });
+    d.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); input.click(); } });
+    input.addEventListener('change', () => { if(input.files[0]) setDrop(slot, input.files[0]); input.value=''; });
+    d.addEventListener('dragover', e => { e.preventDefault(); d.classList.add('over'); });
+    d.addEventListener('dragleave', () => d.classList.remove('over'));
+    d.addEventListener('drop', e => { e.preventDefault(); d.classList.remove('over'); const file=[...e.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(file) setDrop(slot,file); });
+  });
+}
+document.addEventListener('paste', e => {
+  if(!$('#tf')) return;
+  const item=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/')); if(!item) return;
+  e.preventDefault();
+  const focused = document.activeElement?.closest?.('.drop')?.dataset.slot;
+  const hasImg = s => !!document.querySelector(`.drop[data-slot="${s}"] img`);
+  const slot = focused || (!hasImg('before') ? 'before' : !hasImg('after') ? 'after' : 'after');
+  setDrop(slot, item.getAsFile()); toast(slot==='before'?'عکس «قبل از ورود» اضافه شد.':'عکس «بعد از بستن» اضافه شد.');
+});
+
+function shrink(blob, maxW, q){
+  return new Promise((res,rej)=>{
+    const img=new Image(), u=URL.createObjectURL(blob);
+    img.onload=()=>{ const s=Math.min(1,maxW/img.width); const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u);
+      res(c); };
+    img.onerror=()=>{ URL.revokeObjectURL(u); rej(new Error('img')); };
+    img.src=u;
+  });
+}
+async function storeImage(blob){
+  if(assets){
+    const c = await shrink(blob, 1920, .88);
+    const b = await new Promise(r=>c.toBlob(r,'image/jpeg',.88));
+    const up = await assets.upload(b);
+    return up.id;
+  }
+  const c = await shrink(blob, 1100, .7);
+  return c.toDataURL('image/jpeg', .7);
+}
+
+async function submitForm(f, rTouched){
+  const btn=$('#saveBtn');
+  const symbol=f.symbol.value.trim().toUpperCase();
+  if(!symbol){ f.symbol.focus(); toast('نماد را وارد کن.'); return; }
+  const fd = new FormData(f);
+  const val = n => { const v = num(fd.get(n)); return v; };
+  const e=val('entry'), sl=val('sl'), tp=val('tp');
+  const r = val('r') ?? 0;
+  const t = {
+    id: editing ? editing.id : uid(),
+    createdAt: editing?.createdAt || new Date().toISOString(),
+    symbol, direction: fd.get('direction')||'buy',
+    openedAt: fd.get('openedAt')||nowLocal(), closedAt: fd.get('closedAt')||'',
+    session: fd.get('session'), htf: fd.get('htf'), ltf: fd.get('ltf'), bias: fd.get('bias')||'',
+    setups: fd.getAll('setups'),
+    entry:e, sl, tp, exit:val('exit'), lots:val('lots'), riskPct:val('riskPct'), pnl:val('pnl'),
+    r, rManual: rTouched,
+    plannedRR: (e!=null&&sl!=null&&tp!=null&&e!==sl)? Math.abs(tp-e)/Math.abs(e-sl) : null,
+    result: r>0.05?'win':r<-0.05?'loss':'be',
+    rules: Object.fromEntries(RULES.map(x=>[x.k, !!fd.get('rule_'+x.k)])),
+    emotion: fd.get('emotion'), exec: +fd.get('exec')||null,
+    reason: fd.get('reason')||'', lesson: fd.get('lesson')||'',
+    imgBefore: editing?.imgBefore||'', imgAfter: editing?.imgAfter||''
+  };
+  // with-bias
+  t.withBias = !t.bias || t.bias==='range' ? null : (t.bias==='bull') === (t.direction==='buy');
+  btn.disabled=true; btn.textContent='در حال ذخیره…';
+  try{
+    const old = {before:t.imgBefore, after:t.imgAfter};
+    for(const slot of ['before','after']){
+      const p = pendingImgs[slot], key = slot==='before'?'imgBefore':'imgAfter';
+      if(p==='remove') t[key]='';
+      else if(p && p.blob) t[key] = await storeImage(p.blob);
+    }
+    await store.save(t);
+    if(assets){ for(const slot of ['before','after']){ const o=old[slot], n=t[slot==='before'?'imgBefore':'imgAfter']; if(o && o!==n && !o.startsWith('data:')) assets.delete(o).catch(()=>{}); } }
+    closeModal(); toast(editing?'تغییرات ذخیره شد.':'ترید ثبت شد.');
+  }catch(err){
+    btn.disabled=false; btn.textContent=editing?'ذخیره‌ی تغییرات':'ثبت ترید';
+    const code = err && err.code;
+    toast(code==='quota_exceeded'?'فضای ذخیره پر است؛ چند عکس یا ترید قدیمی را حذف کن.':'ذخیره انجام نشد؛ دوباره امتحان کن.');
+  }
+}
+
+/* ---------- export ---------- */
+async function exportCSV(){
+  const cols=['openedAt','closedAt','symbol','direction','session','htf','ltf','bias','setups','entry','sl','tp','exit','lots','riskPct','pnl','r','result','rulesFollowed','emotion','exec','reason','lesson'];
+  const q = v => { const s = v==null?'':String(v); return /[",\n]/.test(s)? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const rows = filtered().map(t => cols.map(c => q(c==='setups'?(t.setups||[]).join(' | '):c==='rulesFollowed'?(rulesOk(t)?'yes':'no'):t[c])).join(','));
+  const csv = '\ufeff' + cols.join(',') + '\n' + rows.join('\n');
+  const name = 'trade-journal-' + new Date().toISOString().slice(0,10) + '.csv';
+  download(name, new Blob([csv], {type:'text/csv;charset=utf-8'}));
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => { view=b.dataset.view; render(); });
+$('#newBtn').onclick = () => openForm();
+$('#fPeriod').onchange = e => { filters.period=e.target.value; render(); };
+$('#fSymbol').onchange = e => { filters.symbol=e.target.value; render(); };
+$('#fSetup').onchange = e => { filters.setup=e.target.value; render(); };
+$('#exportBtn').onclick = exportCSV;
+$('#backupBtn').onclick = exportBackup;
+$('#restoreBtn').onclick = () => $('#restoreFile').click();
+$('#restoreFile').onchange = e => { const f=e.target.files[0]; if(f) importBackup(f); e.target.value=''; };
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let rsT; window.addEventListener('resize',()=>{clearTimeout(rsT); rsT=setTimeout(()=>{ if(view==='dash') render(); },200);});
+init();
+</script>
+</body>
+</html>
